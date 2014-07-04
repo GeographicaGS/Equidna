@@ -1,0 +1,367 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>equidna.tms &mdash; Equidna 1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Equidna 1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Equidna 1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for equidna.tms</h1><div class="highlight"><pre>
+<span class="c"># coding=UTF8</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">This is the TMS library.</span>
+
+<span class="sd">Only accepts coordinates in WGS84 or Spherical Mercator. Do not attempt</span>
+<span class="sd">to do anything with other coordinate systems.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="n">srid</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">4326</span><span class="p">:</span> <span class="s">&quot;EPSG:4326 WGS84 Geographics&quot;</span><span class="p">,</span>
+    <span class="mi">3857</span><span class="p">:</span> <span class="s">&quot;EPSG:3857 Google Mercator&quot;</span>
+<span class="p">}</span>
+
+<span class="n">tileSize</span> <span class="o">=</span> <span class="mf">256.0</span>
+<span class="sd">&quot;&quot;&quot;Size of the tiles.&quot;&quot;&quot;</span>
+<span class="n">originShift</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mf">6378137.0</span>
+<span class="n">initialResolution</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mf">6378137.0</span><span class="o">/</span><span class="n">tileSize</span>
+
+<div class="viewcode-block" id="Coordinate"><a class="viewcode-back" href="../../index.html#equidna.tms.Coordinate">[docs]</a><span class="k">class</span> <span class="nc">Coordinate</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Coordinate class. This object holds x,y coordinates in the given SRID.&quot;&quot;&quot;</span>
+    <span class="n">srid</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;The Spatial Reference ID of the coordinate (3857 for Spherical Mercator, 4326 for WGS84 Geographics).&quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;x coordinate.&quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;y coordinate.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">srid</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">srid</span> <span class="o">=</span> <span class="n">srid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
+<div class="viewcode-block" id="Coordinate.wgs84LatLonToSphericalMercator"><a class="viewcode-back" href="../../index.html#equidna.tms.Coordinate.wgs84LatLonToSphericalMercator">[docs]</a>    <span class="k">def</span> <span class="nf">wgs84LatLonToSphericalMercator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts from WGS84 Lat/Lon to Spherical Mercator.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">srid</span><span class="o">==</span><span class="mi">3857</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="n">originShift</span><span class="o">/</span><span class="mf">180.0</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">((</span><span class="mf">90.0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">360.0</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.0</span><span class="p">)</span><span class="o">*</span><span class="n">originShift</span><span class="o">/</span><span class="mf">180.0</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">(</span><span class="mi">3857</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Coordinate.sphericalMercatorToWgs84LatLon"><a class="viewcode-back" href="../../index.html#equidna.tms.Coordinate.sphericalMercatorToWgs84LatLon">[docs]</a>    <span class="k">def</span> <span class="nf">sphericalMercatorToWgs84LatLon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts from Spherical Mercator to WGS84 Lat/Lon.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">srid</span><span class="o">==</span><span class="mi">4326</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">/</span><span class="n">originShift</span><span class="o">*</span><span class="mf">180.0</span>
+            <span class="n">lat</span> <span class="o">=</span> <span class="mf">180.0</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">/</span><span class="n">originShift</span><span class="o">*</span><span class="mf">180.0</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.0</span><span class="p">))</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">(</span><span class="mi">4326</span><span class="p">,</span><span class="n">lon</span><span class="p">,</span><span class="n">lat</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To string.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="s">&quot;(EPSG:&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">srid</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;)&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Tile"><a class="viewcode-back" href="../../index.html#equidna.tms.Tile">[docs]</a><span class="k">class</span> <span class="nc">Tile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Tile class in a TMS schema.&quot;&quot;&quot;</span>
+    <span class="n">zoom</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;Tile zoom level.&quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;Tile&#39;s x coordinate.&quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;Tile&#39;s y coordinate.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="n">zoom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To string.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">+</span><span class="s">&quot;)&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Tile.pixelResolution"><a class="viewcode-back" href="../../index.html#equidna.tms.Tile.pixelResolution">[docs]</a>    <span class="k">def</span> <span class="nf">pixelResolution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the resolution of a pixel in the given zoom.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">initialResolution</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Tile.length"><a class="viewcode-back" href="../../index.html#equidna.tms.Tile.length">[docs]</a>    <span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the length of the side of the tile, in meters.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">6378137</span><span class="o">/</span><span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Tile.toGoogle"><a class="viewcode-back" href="../../index.html#equidna.tms.Tile.toGoogle">[docs]</a>    <span class="k">def</span> <span class="nf">toGoogle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the equivalent Google tile position.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">Tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Tile.childTiles"><a class="viewcode-back" href="../../index.html#equidna.tms.Tile.childTiles">[docs]</a>    <span class="k">def</span> <span class="nf">childTiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns child tiles in a given zoom.&quot;&quot;&quot;</span>
+        <span class="n">tiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="o">&gt;</span><span class="n">zoom</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">Grid</span><span class="p">()</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">zoom</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="n">s</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">tiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="k">return</span><span class="p">(</span><span class="n">tiles</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Tile.bounds"><a class="viewcode-back" href="../../index.html#equidna.tms.Tile.bounds">[docs]</a>    <span class="k">def</span> <span class="nf">bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns tile bounds in 3857.&quot;&quot;&quot;</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">()</span>
+        <span class="n">minxy</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="mi">3857</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="n">length</span><span class="p">)</span><span class="o">-</span><span class="n">originShift</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="n">length</span><span class="p">)</span><span class="o">-</span><span class="n">originShift</span><span class="p">)</span>
+        <span class="n">maxxy</span> <span class="o">=</span> <span class="n">Coordinate</span><span class="p">(</span><span class="mi">3857</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="n">length</span><span class="p">)</span><span class="o">+</span><span class="n">length</span><span class="o">-</span><span class="n">originShift</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="n">length</span><span class="p">)</span><span class="o">+</span><span class="n">length</span><span class="o">-</span><span class="n">originShift</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">Bbox</span><span class="p">(</span><span class="n">minxy</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">minxy</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">maxxy</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">maxxy</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="PixelGrid"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid">[docs]</a><span class="k">class</span> <span class="nc">PixelGrid</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A pixel referenced to the grid.&quot;&quot;&quot;</span>
+    <span class="n">zoom</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;Zoom this pixel belongs to.&quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;x coordinate.&quot;&quot;&quot;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot;y coordinate.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zoom</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zoom</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">zoom</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To string.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;)&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PixelGrid.bottomLeft"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid.bottomLeft">[docs]</a>    <span class="k">def</span> <span class="nf">bottomLeft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns bottom left corner of the pixel in 3857.&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">())</span><span class="o">-</span><span class="n">originShift</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">())</span><span class="o">-</span><span class="n">originShift</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">(</span><span class="mi">3857</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="PixelGrid.topRight"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid.topRight">[docs]</a>    <span class="k">def</span> <span class="nf">topRight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the top right corner of the pixel in 3857.&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">())</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">()</span><span class="o">-</span><span class="n">originShift</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">())</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">()</span><span class="o">-</span><span class="n">originShift</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">(</span><span class="mi">3857</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="PixelGrid.bbox"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid.bbox">[docs]</a>    <span class="k">def</span> <span class="nf">bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the bounding box delimited by the pixel in 3857.&quot;&quot;&quot;</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bottomLeft</span><span class="p">()</span>
+        <span class="n">corner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topRight</span><span class="p">()</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">Bbox</span><span class="p">(</span><span class="n">origin</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">origin</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">corner</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">corner</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="PixelGrid.center"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid.center">[docs]</a>    <span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the center of the pixel in 3857.&quot;&quot;&quot;</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bottomLeft</span><span class="p">()</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">origin</span><span class="o">.</span><span class="n">x</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">()</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">origin</span><span class="o">.</span><span class="n">y</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">()</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">Coordinate</span><span class="p">(</span><span class="mi">3857</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="PixelGrid.pixelResolution"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid.pixelResolution">[docs]</a>    <span class="k">def</span> <span class="nf">pixelResolution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the resolution of a pixel for a given zoom level.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">initialResolution</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="PixelGrid.invertOrigin"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid.invertOrigin">[docs]</a>    <span class="k">def</span> <span class="nf">invertOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Inverts the origin of the grid for the pixel, from bottom left to top left.&quot;&quot;&quot;</span>
+        <span class="n">mapsize</span> <span class="o">=</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span><span class="o">*</span><span class="n">tileSize</span>
+        <span class="k">return</span> <span class="n">PixelGrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">mapsize</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="PixelGrid.toPixelTile"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelGrid.toPixelTile">[docs]</a>    <span class="k">def</span> <span class="nf">toPixelTile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a PixelTile for a given tile.&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">-</span><span class="p">(</span><span class="n">tile</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="n">tileSize</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">-</span><span class="p">(</span><span class="n">tile</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="n">tileSize</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mi">255</span> <span class="k">if</span> <span class="n">x</span><span class="o">&gt;</span><span class="mi">255</span> <span class="k">else</span> <span class="n">x</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="mi">255</span> <span class="k">if</span> <span class="n">y</span><span class="o">&gt;</span><span class="mi">255</span> <span class="k">else</span> <span class="n">y</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">x</span><span class="o">&lt;</span><span class="mi">0</span> <span class="k">else</span> <span class="n">x</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">y</span><span class="o">&lt;</span><span class="mi">0</span> <span class="k">else</span> <span class="n">y</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">PixelTile</span><span class="p">(</span><span class="n">tile</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="Grid"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid">[docs]</a><span class="k">class</span> <span class="nc">Grid</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Tile grid object.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Grid.sphericalMercatorToGridPixels"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid.sphericalMercatorToGridPixels">[docs]</a>    <span class="k">def</span> <span class="nf">sphericalMercatorToGridPixels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Given a coordinate in 3857, returns a PixelGrid for the given zoom.&quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">(</span><span class="n">zoom</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">coordinate</span><span class="o">.</span><span class="n">x</span><span class="o">+</span><span class="n">originShift</span><span class="o">/</span><span class="n">res</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">coordinate</span><span class="o">.</span><span class="n">y</span><span class="o">+</span><span class="n">originShift</span><span class="o">/</span><span class="n">res</span><span class="p">))</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">PixelGrid</span><span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Grid.pixelResolution"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid.pixelResolution">[docs]</a>    <span class="k">def</span> <span class="nf">pixelResolution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the resolution of a pixel in the given zoom.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">initialResolution</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">zoom</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Grid.sphericalMercatorInTile"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid.sphericalMercatorInTile">[docs]</a>    <span class="k">def</span> <span class="nf">sphericalMercatorInTile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the tile this coordinate falls in for a given zoom level.&quot;&quot;&quot;</span>
+        <span class="n">tile</span> <span class="o">=</span> <span class="n">Tile</span><span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">tile</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">coordinate</span><span class="o">.</span><span class="n">x</span><span class="o">+</span><span class="n">originShift</span><span class="p">)</span><span class="o">/</span><span class="n">tile</span><span class="o">.</span><span class="n">length</span><span class="p">())</span>
+        <span class="n">tile</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">coordinate</span><span class="o">.</span><span class="n">y</span><span class="o">+</span><span class="n">originShift</span><span class="p">)</span><span class="o">/</span><span class="n">tile</span><span class="o">.</span><span class="n">length</span><span class="p">())</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">tile</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Grid.size"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid.size">[docs]</a>    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the grid size in tiles for a given zoom.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">zoom</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Grid.getTiles"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid.getTiles">[docs]</a>    <span class="k">def</span> <span class="nf">getTiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all tiles in a zoom.&quot;&quot;&quot;</span>
+        <span class="n">tiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="n">tiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Tile</span><span class="p">(</span><span class="n">zoom</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">tiles</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Grid.zoomForPixelSize"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid.zoomForPixelSize">[docs]</a>    <span class="k">def</span> <span class="nf">zoomForPixelSize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the maximum zoom at which the given pixel size is guaranteed.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">size</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">pixelResolution</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Grid.pixelTileFromCoordinate"><a class="viewcode-back" href="../../index.html#equidna.tms.Grid.pixelTileFromCoordinate">[docs]</a>    <span class="k">def</span> <span class="nf">pixelTileFromCoordinate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">,</span> <span class="n">zoom</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This is a convenience function that takes a coordinate in 3857 or 4326 and a zoom level</span>
+<span class="sd">        and returns a PixelTile.&quot;&quot;&quot;</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">coordinate</span><span class="o">.</span><span class="n">wgs84LatLonToSphericalMercator</span><span class="p">()</span> <span class="k">if</span> <span class="n">coordinate</span><span class="o">.</span><span class="n">srid</span><span class="o">==</span><span class="mi">4326</span> <span class="k">else</span> <span class="n">coordinate</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">Grid</span><span class="p">()</span>
+        <span class="n">pgrid</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">sphericalMercatorToGridPixels</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">zoom</span><span class="p">)</span>
+        <span class="n">tile</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">sphericalMercatorInTile</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">zoom</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">pgrid</span><span class="o">.</span><span class="n">toPixelTile</span><span class="p">(</span><span class="n">tile</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="Bbox"><a class="viewcode-back" href="../../index.html#equidna.tms.Bbox">[docs]</a><span class="k">class</span> <span class="nc">Bbox</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A bounding box.&quot;&quot;&quot;</span>
+    <span class="n">xmin</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">ymin</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">xmax</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">ymax</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmin</span> <span class="o">=</span> <span class="n">xmin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ymin</span> <span class="o">=</span> <span class="n">ymin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmax</span> <span class="o">=</span> <span class="n">xmax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ymax</span> <span class="o">=</span> <span class="n">ymax</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To string.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bbox</span><span class="p">))</span>
+
+        </div>
+<div class="viewcode-block" id="PixelTile"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelTile">[docs]</a><span class="k">class</span> <span class="nc">PixelTile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A pixel referenced to a tile.&quot;&quot;&quot;</span>
+    <span class="n">tile</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tile</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile</span> <span class="o">=</span> <span class="n">tile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To string.&quot;&quot;&quot;</span>
+        <span class="k">return</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tile</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+
+<div class="viewcode-block" id="PixelTile.toPixelGrid"><a class="viewcode-back" href="../../index.html#equidna.tms.PixelTile.toPixelGrid">[docs]</a>    <span class="k">def</span> <span class="nf">toPixelGrid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the PixelGrid of this PixelTile.&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tile</span><span class="o">.</span><span class="n">x</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tile</span><span class="o">.</span><span class="n">x</span><span class="o">*</span><span class="n">tileSize</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tile</span><span class="o">.</span><span class="n">y</span><span class="o">+</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tile</span><span class="o">.</span><span class="n">y</span><span class="o">*</span><span class="n">tileSize</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">PixelGrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tile</span><span class="o">.</span><span class="n">zoom</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Equidna 1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Geographica.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
