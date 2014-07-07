@@ -23,7 +23,7 @@ metadata = {
 	"center" : "0,0,1",
 	"minzoom" : 0,
 	"maxzoom" : 3,
-	"name" : "Pruebas",
+	"name" : "Test",
 	"description" : "",
 	"attribution" : "",
 	"template" : "",
