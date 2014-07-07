@@ -206,8 +206,8 @@ class Grid(object):
     def getTiles(self, zoom):
         """Returns all tiles in a zoom."""
         tiles = []
-        for a in range(0, self.size):
-            for b in range(0, self.size):
+        for a in range(0, self.size(zoom)):
+            for b in range(0, self.size(zoom)):
                 tiles.append(Tile(zoom, a, b))
         return(tiles)
         

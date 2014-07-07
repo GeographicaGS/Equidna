@@ -1,0 +1,19 @@
+<Map background-color="steelblue" 
+  srs="+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs">
+
+  <Style name="My Style">
+    <Rule>
+      <PolygonSymbolizer fill="#f2eff9" />
+      <LineSymbolizer stroke="rgb(50%,50%,50%)" stroke-width="0.1" />
+    </Rule>
+  </Style>
+
+  <Layer name="world" srs="+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs">
+    <StyleName>My Style</StyleName>
+    <Datasource>
+      <Parameter name="type">shape</Parameter>
+      <Parameter name="file">ne_110m_admin_0_countries.shp</Parameter>
+    </Datasource>
+  </Layer>
+
+</Map>
