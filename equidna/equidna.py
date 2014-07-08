@@ -20,7 +20,7 @@
 
 import mapnik,os
 from mbtile import MBTile
-from tms import Tile,Grid
+from tms import Tile,Grid,Coordinate,Bbox
 
 class Equidna(object):
     """Equidna is a Tile builder which is based on Mapnik"""
@@ -55,10 +55,16 @@ class Equidna(object):
 		# # Add metadata
 		mb.addMetadata(self.__md)
 
+		#bbox = Bbox(self.__md["bounds"][0],self.__md["bounds"][1])
+		boundsarray = self.__md["bounds"].split(",")
+		lowerleft = Coordinate("4326",boundsarray[0],boundsarray[1]).wgs84LatLonToSphericalMercator()
+		upperright = Coordinate("4326",boundsarray[2],boundsarray[3]).wgs84LatLonToSphericalMercator()
+		bounds_3857 = Bbox(lowerleft.x,lowerleft.y,upperright.x,upperright.y)
+
 		grid = Grid()
 		for zoom in range(self.__md["minzoom"],self.__md["maxzoom"]+1):
 			print "Building zoom %d..." % (zoom), 
-			tiles = grid.getTiles(zoom)
+			tiles = grid.getTilesInBounds(zoom,bounds_3857)
 
 			for t in tiles:
 				bounds = t.bounds()

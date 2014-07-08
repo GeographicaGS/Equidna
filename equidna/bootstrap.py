@@ -20,9 +20,10 @@ from equidna import Equidna
 
 metadata = {
 	"bounds" : "-180,-85,180,85",
+	#"bounds": "-16.875,32.5468,8.4375,47.5172",
 	"center" : "0,0,1",
 	"minzoom" : 0,
-	"maxzoom" : 3,
+	"maxzoom" : 10,
 	"name" : "Test",
 	"description" : "",
 	"attribution" : "",

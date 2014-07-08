@@ -10,6 +10,7 @@ to do anything with other coordinate systems.
 """
 
 import math
+import six
 
 srid = {
     4326: "EPSG:4326 WGS84 Geographics",
@@ -33,6 +34,11 @@ class Coordinate(object):
     def __init__(self, srid, x, y):
         """Constructor."""
         self.srid = srid
+        if isinstance(x, six.string_types):
+            x = float(x)
+        if isinstance(y, six.string_types):
+            y = float(y)
+
         self.x = x
         self.y = y
 
@@ -195,8 +201,8 @@ class Grid(object):
     def sphericalMercatorInTile(self, coordinate, zoom):
         """Returns the tile this coordinate falls in for a given zoom level."""
         tile = Tile(zoom, 0, 0)
-        tile.x = math.floor((coordinate.x+originShift)/tile.length())
-        tile.y = math.floor((coordinate.y+originShift)/tile.length())
+        tile.x = int(math.floor((coordinate.x+originShift)/tile.length()))
+        tile.y = int(math.floor((coordinate.y+originShift)/tile.length()))
         return(tile)
 
     def size(self, zoom):
@@ -210,6 +216,18 @@ class Grid(object):
             for b in range(0, self.size(zoom)):
                 tiles.append(Tile(zoom, a, b))
         return(tiles)
+
+    def getTilesInBounds(self,zoom,bounds):
+        """Returns all tiles in a zoom which are inside a given bounds.Bounds SRID must be EPSG:3857."""
+        minTile = self.sphericalMercatorInTile(Coordinate("3857",bounds.xmin,bounds.ymin),zoom)
+        maxTile = self.sphericalMercatorInTile(Coordinate("3857",bounds.xmax,bounds.ymax),zoom)
+
+        tiles = []
+        for a in range(minTile.x,maxTile.x+1):
+            for b in range(minTile.y,maxTile.y+1):
+                tiles.append(Tile(zoom, a, b))
+
+        return tiles
         
     def zoomForPixelSize(self, size):
         """Returns the maximum zoom at which the given pixel size is guaranteed."""
