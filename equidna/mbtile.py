@@ -34,7 +34,7 @@ class MBTile(object):
         self.__filename = filename
 
     def open(self):
-        self.__conn = sqlite3.connect(self.__filename)
+        self.__conn = sqlite3.connect(self.__filename,timeout=11)
 
     def close(self):
         if (not self.__conn):

@@ -81,8 +81,6 @@ class Equidna(object):
 		# Add metadata
 		mb.addMetadata(self.__md)
 
-		mb.close()
-
 		boundsarray = self.__md["bounds"].split(",")
 		lowerleft = Coordinate("4326",boundsarray[0],boundsarray[1]).wgs84LatLonToSphericalMercator()
 		upperright = Coordinate("4326",boundsarray[2],boundsarray[3]).wgs84LatLonToSphericalMercator()
@@ -105,21 +103,26 @@ class Equidna(object):
 		mapTiles = self.mapper(allTiles,nworkers)
 
 		lock = multiprocessing.Lock()
+		queue = multiprocessing.JoinableQueue()
 
+		n = 0
 		for i in range(0,nworkers):
-			worker = TileWorker(i,lock,mapTiles[i],output,m,self.__md)
+			n = n+len(mapTiles[i])
+			worker = TileWorker(i,lock,queue,mapTiles[i],output,m,self.__md)
 			# Start a new worker
 			worker.start()
 			# Add a worker to the list
 			workers.append(worker)
+		
+		for i in range(0,n):
+			tileWorkerData = queue.get()
+			mb.addTile(tileWorkerData.tile.zoom,tileWorkerData.tile.x,tileWorkerData.tile.y,tileWorkerData.imagebuff)			
 
 		# Wait for all worker to complete
 		for t in workers:
 		    t.join()
 
-		print "COMPLETED"
 		
 		# # Let's create the indexes
-		mb.open()
 		mb.createIndexes()
 		mb.close()
