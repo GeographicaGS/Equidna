@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from equidna import Equidna
 
 metadata = {
@@ -23,7 +24,7 @@ metadata = {
 	#"bounds": "-16.875,32.5468,8.4375,47.5172",
 	"center" : "0,0,1",
 	"minzoom" : 0,
-	"maxzoom" : 10,
+	"maxzoom" : 6,
 	"name" : "Test",
 	"description" : "",
 	"attribution" : "",
@@ -32,6 +33,6 @@ metadata = {
 	"format"  : "png"
 }
 
-eq = Equidna(mapnikxml = "mapnik.xml", metadata = metadata)
+eq = Equidna(mapnikxml = "mapnik.xml", metadata = metadata,ncores=None)
 
 eq.build(output="test.mbtiles",format="mbtiles")

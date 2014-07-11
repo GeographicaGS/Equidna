@@ -21,6 +21,10 @@
 import mapnik,os
 from mbtile import MBTile
 from tms import Tile,Grid,Coordinate,Bbox
+from tileworker import TileWorker
+import math
+import time
+import multiprocessing
 
 class Equidna(object):
     """Equidna is a Tile builder which is based on Mapnik"""
@@ -29,18 +33,40 @@ class Equidna(object):
     __md = None
     """Metadata"""
 
-    def __init__(self,mapnikxml,metadata):
+    def __init__(self,mapnikxml,metadata,ncores=None):
         """Constructor."""
-        self.__xml = mapnikxml;
-        self.__md = metadata;
+        self.__xml = mapnikxml
+        self.__md = metadata
+        self.__ncores = ncores
 
     def build(self,output,format):
-    	if format == "mbtiles":
-    		self.__buildMBTiles(output)
+		start_time = time.time()
+	
+		if format == "mbtiles":	
+			self.__buildMBTiles(output)
+		
+		print "--- %f seconds ---" % (time.time() - start_time)
+
+    def mapper(self,tiles,nworkers):
+    	mapper_tiles = []
+    	pos = 0
+    	interval = int(math.floor(len(tiles)/nworkers))
+
+    	while ( pos+interval<=len(tiles)):
+    		
+    		max = pos+interval
+    		if max > len(tiles):
+    			max = len(tiles) -1
+    		mapper_tiles.append(tiles[pos:max])
+    		pos = pos + interval
+
+    	return mapper_tiles
+
 
     def __buildMBTiles(self,output):
     	# Create mapnik map
 		m = mapnik.Map(256,256)
+		m.buffer_size = 128
 		# Load Mapnik stylesheet
 		mapnik.load_map(m, self.__xml)
 
@@ -52,33 +78,48 @@ class Equidna(object):
 		# # Create the structure whitout indexes, just for a faster insertion
 		mb.createStructure(createIndexes=False)
 
-		# # Add metadata
+		# Add metadata
 		mb.addMetadata(self.__md)
 
-		#bbox = Bbox(self.__md["bounds"][0],self.__md["bounds"][1])
+		mb.close()
+
 		boundsarray = self.__md["bounds"].split(",")
 		lowerleft = Coordinate("4326",boundsarray[0],boundsarray[1]).wgs84LatLonToSphericalMercator()
 		upperright = Coordinate("4326",boundsarray[2],boundsarray[3]).wgs84LatLonToSphericalMercator()
 		bounds_3857 = Bbox(lowerleft.x,lowerleft.y,upperright.x,upperright.y)
 
 		grid = Grid()
+
+		allTiles = []
+
 		for zoom in range(self.__md["minzoom"],self.__md["maxzoom"]+1):
-			print "Building zoom %d..." % (zoom), 
-			tiles = grid.getTilesInBounds(zoom,bounds_3857)
+			allTiles.extend(grid.getTilesInBounds(zoom,bounds_3857))
 
-			for t in tiles:
-				bounds = t.bounds()
-				extent = mapnik.Box2d(bounds.xmin,bounds.ymin,bounds.xmax,bounds.ymax)
-				m.zoom_to_box(extent)
+		workers = []
 
-				image = mapnik.Image(m.width,m.height)
-				mapnik.render(m, image)
-				image_buff = image.tostring(self.__md["format"])
+		# Number of cores
+		ncores =  multiprocessing.cpu_count() if self.__ncores == None else self.__ncores
 
-				mb.addTile(zoom,t.x,t.y,image_buff)
+		nworkers = ncores
 
-			print "COMPLETED"
+		mapTiles = self.mapper(allTiles,nworkers)
 
+		lock = multiprocessing.Lock()
+
+		for i in range(0,nworkers):
+			worker = TileWorker(i,lock,mapTiles[i],output,m,self.__md)
+			# Start a new worker
+			worker.start()
+			# Add a worker to the list
+			workers.append(worker)
+
+		# Wait for all worker to complete
+		for t in workers:
+		    t.join()
+
+		print "COMPLETED"
+		
 		# # Let's create the indexes
+		mb.open()
 		mb.createIndexes()
 		mb.close()
