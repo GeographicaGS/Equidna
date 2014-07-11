@@ -108,7 +108,7 @@ class Equidna(object):
 		n = 0
 		for i in range(0,nworkers):
 			n = n+len(mapTiles[i])
-			worker = TileWorker(i,lock,queue,mapTiles[i],output,m,self.__md)
+			worker = TileWorker(i,queue,mapTiles[i],m,self.__md)
 			# Start a new worker
 			worker.start()
 			# Add a worker to the list
