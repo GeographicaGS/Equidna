@@ -5,7 +5,9 @@ Equidna
 
 ## About
 
-Equidna is a Tile builder based on Mapnik. Tiles engine based on Mapnik. An easy way of create MBTiles using mapnik as render.
+Equidna is a Tile builder based on Mapnik. An easy way of create MBTiles using mapnik as render.
+
+It's a multi-thread application. By default, it uses all the cores available but it could be configured.
 
 ## How to use
 
@@ -25,7 +27,7 @@ metadata = {
 	"format"  : "png"
 }
 
-eq = Equidna(mapnikxml = "mapnik.xml", metadata = metadata)
+eq = Equidna(mapnikxml = "mapnik.xml", metadata = metadata,ncores=None)
 
 eq.build(output="test.mbtiles",format="mbtiles")
-``
+```

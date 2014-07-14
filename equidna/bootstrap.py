@@ -24,7 +24,7 @@ metadata = {
 	#"bounds": "-16.875,32.5468,8.4375,47.5172",
 	"center" : "0,0,1",
 	"minzoom" : 0,
-	"maxzoom" : 6,
+	"maxzoom" : 10,
 	"name" : "Test",
 	"description" : "",
 	"attribution" : "",

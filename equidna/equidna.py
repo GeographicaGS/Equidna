@@ -34,31 +34,49 @@ class Equidna(object):
     """Metadata"""
 
     def __init__(self,mapnikxml,metadata,ncores=None):
-        """Constructor."""
+        """Constructor.
+          Keyword arguments:
+    		mapnikxml -- String - Path to Mapnik XML file
+    		metadata -- Dictionary - MBTiles metadata
+    		ncores -- Int - Number of cores to use. Use None for get all cores
+    	"""
         self.__xml = mapnikxml
         self.__md = metadata
         self.__ncores = ncores
+
+    def __timeString(self,elapsed_time):
+    
+	    if elapsed_time >= 60*60:
+	        hours = int(elapsed_time/(60*60))
+	        minutes = int((elapsed_time%(60*60)) / 60) 
+	        seconds = (elapsed_time%(60*60))%60
+	        return str(hours) + "h " + str(minutes) + "m " + str(seconds) + "s"
+	    elif elapsed_time >= 60:
+	        minutes = int(elapsed_time/60) 
+	        seconds = elapsed_time%60
+	        return str(minutes) + "m " + str(seconds) + "s"
+	    else:
+	        return str(elapsed_time) + "s"    
 
     def build(self,output,format):
 		start_time = time.time()
 	
 		if format == "mbtiles":	
 			self.__buildMBTiles(output)
+
+		elapsed_time = self.__timeString(time.time() - start_time)
 		
-		print "--- %f seconds ---" % (time.time() - start_time)
+		print "Elapsed time: %s seconds " % (elapsed_time)
 
     def mapper(self,tiles,nworkers):
     	mapper_tiles = []
-    	pos = 0
-    	interval = int(math.floor(len(tiles)/nworkers))
 
-    	while ( pos+interval<=len(tiles)):
-    		
-    		max = pos+interval
-    		if max > len(tiles):
-    			max = len(tiles) -1
-    		mapper_tiles.append(tiles[pos:max])
-    		pos = pos + interval
+    	interval = int(math.ceil(len(tiles)/float(nworkers)))
+
+    	for i in range(0,nworkers):
+    		loweridx = i*interval
+    		upperidx = (i+1)*interval
+    		mapper_tiles.append(tiles[loweridx:upperidx])
 
     	return mapper_tiles
 
@@ -96,7 +114,7 @@ class Equidna(object):
 		workers = []
 
 		# Number of cores
-		ncores =  multiprocessing.cpu_count() if self.__ncores == None else self.__ncores
+		ncores =  multiprocessing.cpu_count() if self.__ncores == None or multiprocessing.cpu_count() < self.__ncores  else self.__ncores
 
 		nworkers = ncores
 
@@ -116,13 +134,13 @@ class Equidna(object):
 		
 		for i in range(0,n):
 			tileWorkerData = queue.get()
+			print i*100/n,"%         \r",
 			mb.addTile(tileWorkerData.tile.zoom,tileWorkerData.tile.x,tileWorkerData.tile.y,tileWorkerData.imagebuff)			
 
 		# Wait for all worker to complete
 		for t in workers:
 		    t.join()
-
 		
-		# # Let's create the indexes
+		# Let's create the indexes
 		mb.createIndexes()
 		mb.close()
