@@ -290,4 +290,15 @@ class PixelTile(object):
         return(PixelGrid(self.tile.zoom, x, y))
 
 
+def scale2zoom(scaledenominator): 
+    # Don't bother if the scale is larger than ~zoom level 0
+    if scaledenominator > 600000000:
+        return None
+    
+    return round(math.log(559082264.028/scaledenominator,2));
 
+def zoom2scale(zoom):
+    if zoom<0:
+        return None
+    return int(round(559082264.028/(2**zoom)))
+    
