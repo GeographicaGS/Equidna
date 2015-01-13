@@ -134,8 +134,6 @@ class Equidna(object):
 
                 mb.addTile(t.zoom,t.x,t.y,imagebuff)
 
-                
-
         else:
 
             mapTiles = self.mapper(allTiles,nworkers)

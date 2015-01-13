@@ -178,7 +178,7 @@ class MBTile(object):
             raise Exception("No connection open, you must open a connection before call this method")
 
 
-    def addTile(self,zoom,x,y,data):
+    def addTile(self,zoom,x,y,data,type="image"):
         """Add a Tile"""
         if (not self.__conn):
             raise Exception("No connection open, you must open a connection before call this method")
@@ -187,17 +187,28 @@ class MBTile(object):
 
         #check if the image already exists
         c = self.__conn.cursor()
-        sql = "SELECT EXISTS(SELECT * from images WHERE tile_id=?)"
+        if type=="image":
+            sql = "SELECT EXISTS(SELECT * from images WHERE tile_id=?)" 
+        else:
+            sql = "SELECT EXISTS(SELECT * from grid_utfgrid WHERE grid_id=?)" 
+
         c.execute(sql,[hash])
 
         if not c.fetchone()[0]:
-            #images (tile_data blob,tile_id text)
-            sql = "INSERT INTO images VALUES (?,?)"
-            self.__conn.execute(sql,[buffer(data),hash])
+            if type=="image":
+                #images (tile_data blob,tile_id text)
+                sql = "INSERT INTO images VALUES (?,?)"
+                self.__conn.execute(sql,[buffer(data),hash])
+            else:
+                sql = "INSERT INTO grid_utfgrid VALUES (?,?)"
+                self.__conn.execute(sql,[hash,buffer(data)])
 
         #map (zoom_level INTEGER,tile_column INTEGER,tile_row INTEGER,tile_id TEXT,grid_id TEXT)
-        sql = "INSERT INTO map VALUES (?,?,?,?,NULL)"
-        self.__conn.execute(sql,[zoom,x,y,hash])
+        if type=="image":
+            sql = "INSERT INTO map VALUES (?,?,?,?,NULL)"
+        else:
+            sql = "INSERT INTO map VALUES (?,?,?,NULL,?)"
+        self.__conn.execute(sql,[zoom,y,x,hash])
 
 
     def addMetadata(self,dict):
