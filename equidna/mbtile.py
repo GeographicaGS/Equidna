@@ -203,12 +203,13 @@ class MBTile(object):
                 sql = "INSERT INTO grid_utfgrid VALUES (?,?)"
                 self.__conn.execute(sql,[hash,buffer(data)])
 
-        #map (zoom_level INTEGER,tile_column INTEGER,tile_row INTEGER,tile_id TEXT,grid_id TEXT)
+        #map (zoom_level INTEGER,tile_column INTEGER,tile_row INTEGER,tile_id TEXT,grid_id TEXT
         if type=="image":
             sql = "INSERT INTO map VALUES (?,?,?,?,NULL)"
+            self.__conn.execute(sql,[zoom,x,y,hash])
         else:
             sql = "INSERT INTO map VALUES (?,?,?,NULL,?)"
-        self.__conn.execute(sql,[zoom,y,x,hash])
+            self.__conn.execute(sql,[zoom,y,x,hash])
 
 
     def addMetadata(self,dict):
