@@ -28,8 +28,6 @@ import multiprocessing
 
 from pngquant.pngquant import tiny
 
-COMPRESSING = True
-
 class Equidna(object):
     """Equidna is a Tile builder which is based on Mapnik"""
     __xml = None
@@ -48,6 +46,10 @@ class Equidna(object):
         self.__md = metadata
         self.__ncores = ncores
         self.__debug = debug
+        if "compress" in metadata:
+            self.__compress = metadata["compress"]
+        else:
+            self.__compress = False
 
     def __timeString(self,elapsed_time):
     
@@ -136,7 +138,7 @@ class Equidna(object):
                 mapnik.render(m, image)
                 imagebuff = image.tostring(self.__md["format"])
 
-                if COMPRESSING:
+                if self.__compress:
                     imagebuff = tiny(imagebuff, m.width,m.height)
 
                 mb.addTile(t.zoom,t.x,t.y,imagebuff)
@@ -151,7 +153,7 @@ class Equidna(object):
             n = 0
             for i in range(0,nworkers):
                 n = n+len(mapTiles[i])
-                worker = TileWorker(i,queue,mapTiles[i],m,self.__md, COMPRESSING)
+                worker = TileWorker(i,queue,mapTiles[i],m,self.__md, self.__compress)
                 # Start a new worker
                 worker.start()
                 # Add a worker to the list
