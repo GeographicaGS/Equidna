@@ -5,7 +5,8 @@
 #include "pngquant/lib/libimagequant.h"
 #include "pngquant/lib/pam.h"
 
-// #define GAMMA 0.45455
+#define GAMMA 0.45455
+#define GAMMA 1
 // #define FAST_COMPRESSION 3
 
 void
@@ -99,6 +100,7 @@ pngquant_tiny(FILE *src, FILE *dest)
     set_palette(rv, &output_png);
     // output_png.fast_compression = FAST_COMPRESSION;
 
+    output_png.gamma = GAMMA;
     rwpng_write_image8(dest, &output_png);
 
     liq_result_destroy(rv);
