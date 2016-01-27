@@ -1,6 +1,6 @@
 #pngquant 2
 
-[This](https://github.com/pornel/pngquant) is the official `pngquant` and `libimagequant`.
+This is a fork of the [official `pngquant` and `libimagequant`](https://github.com/pornel/pngquant).
 
 [pngquant](https://pngquant.org) converts 24/32-bit RGBA PNGs to 8-bit palette with *alpha channel preserved*.
 Such images are fully standards-compliant and are supported by all web browsers.
@@ -94,4 +94,3 @@ Read image from stdin and send result to stdout.
 Stops processing of arguments. This allows use of file names that start with `-`. If you're using pngquant in a script, it's advisable to put this before file names:
 
     pngquant $OPTIONS -- "$FILE"
-

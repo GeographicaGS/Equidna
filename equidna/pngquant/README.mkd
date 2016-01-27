@@ -1,5 +1,7 @@
 # pngquant-py
 
+This is a fork of https://github.com/bcho/pngquant-py
+
 [WIP]
 
 Export some handful interfaces for using [pngquant](https://github.com/pornel/pngquant) in Python via [cffi](http://cffi.readthedocs.org).
