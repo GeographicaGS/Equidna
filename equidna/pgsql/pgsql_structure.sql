@@ -1,0 +1,1 @@
+CREATE TABLE map (zoom_level INTEGER, tile_column INTEGER, tile_row INTEGER,img bytea)

@@ -24,7 +24,7 @@ metadata = {
 	#"bounds": "-16.875,32.5468,8.4375,47.5172",
 	"center" : "0,0,1",
 	"minzoom" : 0,
-	"maxzoom" : 10,
+	"maxzoom" : 6,
 	"name" : "Test",
 	"description" : "",
 	"attribution" : "",
@@ -33,6 +33,8 @@ metadata = {
 	"format"  : "png"
 }
 
+#from tms import zoom2scale
+#print zoom2scale(4)
 eq = Equidna(mapnikxml = "mapnik.xml", metadata = metadata,ncores=None)
 
 eq.build(output="test.mbtiles",format="mbtiles")

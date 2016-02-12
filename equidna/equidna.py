@@ -86,6 +86,7 @@ class Equidna(object):
     def __buildMBTiles(self,output):
         # Create mapnik map
         m = mapnik.Map(256,256)
+        
         m.buffer_size = 128
         # Load Mapnik stylesheet
         mapnik.load_map(m, self.__xml)

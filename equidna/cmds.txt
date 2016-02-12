@@ -1,0 +1,5 @@
+./ec2/spark-ec2 -k spark -i ~/Downloads/spark.pem stop my-spark-cluster
+
+/root/spark/bin/spark-submit --master spark://ec2-54-221-143-202.compute-1.amazonaws.com:7077  --py-files /root/equidna/equidnaspark.py,/root/equidna/tms.py  /root/equidna/bootstrapspark.py 
+
+/root/spark-ec2/copy-dir /root/equidna/
