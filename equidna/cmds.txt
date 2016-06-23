@@ -5,9 +5,8 @@ http://ec2-54-196-156-74.compute-1.amazonaws.com:8080
 
 rsync -vaz -e 'ssh -i /Users/alasarr/Downloads/spark.pem'  --exclude='*.pyc' --exclude='.DS_Store' --exclude='*.mbtiles' ~/dev/Equidna/equidna/ root@ec2-54-196-156-74.compute-1.amazonaws.com:/root/equidna/
 
-/root/spark/bin/spark-submit --master spark://ec2-54-91-203-253.compute-1.amazonaws.com:7077  --py-files /root/equidna/equidnaspark.py,/root/equidna/tms.py  /root/equidna/bootstrapspark.py
 
-/root/spark/bin/spark-submit --master spark://ec2-54-91-203-253.compute-1.amazonaws.com:7077  --py-files /root/equidna/equidna/equidnaspark.py,/root/equidna/tms.py,/root/equidna/equidna/config.py  /root/equidna/bootstrapspark.py
+/root/spark/bin/spark-submit --master spark://ec2-54-91-203-253.compute-1.amazonaws.com:7077  --py-files /root/equidna/equidnaspark.py,/root/equidna/tms.py,/root/equidna/config.py  /root/equidna/bootstrapspark.py
 
 /root/spark/bin/spark-submit --master spark://ec2-54-91-203-253.compute-1.amazonaws.com:7077   /root/equidna/wordcount.py
 

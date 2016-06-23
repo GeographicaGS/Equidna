@@ -31,7 +31,6 @@ from pyspark import SparkContext
 import logging
 logger = logging.getLogger('py4j')
 
-import boto
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
