@@ -2,7 +2,7 @@
 #
 # Equidna is a Tile builder which is based on Mapnik.
 # For more information see Mapnik project at https://github.com/mapnik/mapnik or http://mapnik.org/
-# Copyright (C) 2014  Geographica 
+# Copyright (C) 2014  Geographica
 # Author: Alberto Asuero
 
 # This program is free software: you can redistribute it and/or modify
@@ -25,15 +25,20 @@ import math
 import time
 import hashlib
 import mapnik
-import psycopg2
 
 from tms import Tile,Grid,Coordinate,Bbox
 from pyspark import SparkContext
 import logging
 logger = logging.getLogger('py4j')
 
+import boto
+
+from boto.s3.connection import S3Connection
+from boto.s3.key import Key
+from config import AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_BUCKET
+
 def rendertile(x):
-      
+
   logger.info("My test info statement")
   z,x,y = x
   # basepath = '/Users/alasarr/dev/Equidna/equidna/output'
@@ -41,32 +46,38 @@ def rendertile(x):
   # if not os.path.exists(basefolder):
   #   os.makedirs(basefolder)
   # fname = os.path.join(basefolder,'%d.png' % (y))
-  
+
   m = mapnik.Map(256,256)
   m.buffer_size = 128
   # # Load Mapnik stylesheet
   mapnik.load_map(m, '/root/equidna/mapnik.xml')
-  
+
   t = Tile(z,x,y)
   bounds = t.bounds()
-  
+
   extent = mapnik.Box2d(bounds.xmin,bounds.ymin,bounds.xmax,bounds.ymax)
   m.zoom_to_box(extent)
 
-  #mapnik.render_to_file(m,fname, 'png')
   image = mapnik.Image(256,256)
   mapnik.render(m, image)
   imagebuff = image.tostring('png')
 
-  #conn = psycopg2.connect('host=192.168.99.100 dbname=tiles user=postgres password=postgres')
-  conn = psycopg2.connect('host=54.86.27.234 dbname=tiles user=postgres password=spark')
-  
-  cur = conn.cursor()
+  s3conn = S3Connection(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+  s3bucket = s3conn.get_bucket(AWS_BUCKET, validate=False)
 
-  cur.execute('INSERT INTO tiles VALUES (%d,%d,%d, %s)' % (z,x,y,psycopg2.Binary(imagebuff)))
-  conn.commit()
-  cur.close()
-  conn.close()
+  k = Key(s3bucket)
+  k.key = '%d/%d/%d.png' % (z,x,y)
+  k.set_contents_from_string(imagebuff)
+
+  #conn = psycopg2.connect('host=192.168.99.100 dbname=tiles user=postgres password=postgres')
+  # conn = psycopg2.connect('host=54.86.27.234 dbname=tiles user=postgres password=spark')
+  #
+  # cur = conn.cursor()
+  #
+  # cur.execute('INSERT INTO tiles VALUES (%d,%d,%d, %s)' % (z,x,y,psycopg2.Binary(imagebuff)))
+  # conn.commit()
+  # cur.close()
+  # conn.close()
 
 
 class EquidnaSpark(object):
@@ -87,7 +98,7 @@ class EquidnaSpark(object):
     self.__xml = mapnikxml
     self.__md = metadata
     self.__appName = appName
-      
+
   def __getTiles(self):
 
     grid = Grid()
@@ -101,7 +112,7 @@ class EquidnaSpark(object):
     for zoom in range(self.__md["minzoom"],self.__md["maxzoom"]+1):
       for g in grid.getTilesInBounds(zoom,bounds_3857):
         allTiles.append((g.zoom,g.x,g.y))
-      
+
     return allTiles
 
   def build(self):
@@ -118,4 +129,3 @@ class EquidnaSpark(object):
     print(tiles.count())
 
     sc.stop()
-  

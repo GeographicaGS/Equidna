@@ -1,5 +1,19 @@
-./ec2/spark-ec2 -k spark -i ~/Downloads/spark.pem stop my-spark-cluster
 
-/root/spark/bin/spark-submit --master spark://ec2-54-221-143-202.compute-1.amazonaws.com:7077  --py-files /root/equidna/equidnaspark.py,/root/equidna/tms.py  /root/equidna/bootstrapspark.py 
+http://ec2-54-196-156-74.compute-1.amazonaws.com:8080
+
+./ec2/spark-ec2 -k spark -i ~/Downloads/spark.pem start my-spark-cluster
+
+rsync -vaz -e 'ssh -i /Users/alasarr/Downloads/spark.pem'  --exclude='*.pyc' --exclude='.DS_Store' --exclude='*.mbtiles' ~/dev/Equidna/equidna/ root@ec2-54-196-156-74.compute-1.amazonaws.com:/root/equidna/
+
+/root/spark/bin/spark-submit --master spark://ec2-54-91-203-253.compute-1.amazonaws.com:7077  --py-files /root/equidna/equidnaspark.py,/root/equidna/tms.py  /root/equidna/bootstrapspark.py
+
+/root/spark/bin/spark-submit --master spark://ec2-54-91-203-253.compute-1.amazonaws.com:7077  --py-files /root/equidna/equidna/equidnaspark.py,/root/equidna/tms.py,/root/equidna/equidna/config.py  /root/equidna/bootstrapspark.py
+
+/root/spark/bin/spark-submit --master spark://ec2-54-91-203-253.compute-1.amazonaws.com:7077   /root/equidna/wordcount.py
+
+
+./ec2/spark-ec2 -k spark -i ~/Downloads/spark.pem login my-spark-cluster
 
 /root/spark-ec2/copy-dir /root/equidna/
+source ansible/hacking/env-setup
+ansible-playbook playbook.yml

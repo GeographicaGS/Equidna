@@ -1,0 +1,19 @@
+---
+- hosts: all
+
+  remote_user: root
+  tasks:
+    - name: making python2.7 default
+      command: alternatives --set python /usr/bin/python2.7
+    - name: updating packages
+      yum: name=* state=latest
+    - name: install python devel
+      yum: name=python27-devel state=latest
+    - name: installing pip
+      easy_install: name=pip state=latest
+    - name: install numpy
+      pip: name=numpy state=latest
+#    - name: install mapnik
+#      script: /root/mapnik_install.sh
+    - name: install boto
+      pip: name=boto state=latest
