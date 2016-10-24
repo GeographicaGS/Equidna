@@ -13,7 +13,7 @@
       easy_install: name=pip state=latest
     - name: install numpy
       pip: name=numpy state=latest
-#    - name: install mapnik
-#      script: /root/mapnik_install.sh
+    - name: install mapnik
+      script: /root/mapnik_install.sh
     - name: install boto
       pip: name=boto state=latest
